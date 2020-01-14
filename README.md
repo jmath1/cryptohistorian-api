@@ -1,0 +1,1 @@
+The purpose of this project is to build a server and API that gathers and distributes aggregated historical cryptocurrency price data.
