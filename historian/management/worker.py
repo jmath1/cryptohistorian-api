@@ -1,22 +1,22 @@
-from multiprocessing import Pool
-import time
+
 from historian.pricer import Pricer
+from multiprocessing import Pool
 from historian.models import PricePoint
-from django.core.management.base import BaseCommand, CommandError
 import logging
 
-# Get an instance of a logger
 logger = logging.getLogger(__name__)
 
-class BTCWorker():
+class Worker():
     EXCHANGES = [
         "coinbase",
         "bittrex",
         "binance",
         "bitfinex",
     ]
-    def __init__(self):
-        self.pricer = Pricer("BTC")
+
+    def __init__(self, coin):
+        self.pricer = Pricer(coin)
+        self.coin = coin
 
     def api_call_buy(self, exchange):
         order_type = "buy"
@@ -47,7 +47,7 @@ class BTCWorker():
         buys = p.map(self.api_call_buy, self.EXCHANGES)
 
         for price_point in buys:
-            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="buy")
+            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="buy", coin=self.coin)
             p.save()
             print(f"Saved {str(p)}")
             logger.info(f"Saved {str(p)}")
@@ -57,7 +57,7 @@ class BTCWorker():
         sells = p.map(self.api_call_sell, self.EXCHANGES)
 
         for price_point in sells:
-            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="sell")
+            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="sell", coin=self.coin)
             p.save()
             print(f"Saved {str(p)}")
             logger.info(f"Saved {str(p)}")

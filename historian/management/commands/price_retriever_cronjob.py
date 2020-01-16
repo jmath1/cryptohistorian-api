@@ -2,8 +2,7 @@ from multiprocessing import Pool
 import time
 from historian.pricer import * 
 from historian.models import PricePoint
-from historian.management.bitcoin.client import BTCWorker
-from historian.management.ethereum.client import ETHWorker
+from historian.management.worker import Worker
 from django.core.management.base import BaseCommand, CommandError
 import logging
 
@@ -19,10 +18,7 @@ class Command(BaseCommand):
    
     def handle(self, *args, **options):
         self.coin = options["coin"][0]
-        if self.coin == "BTC":
-            self.worker = BTCWorker()
-        elif self.coin == "ETH":
-            self.worker = ETHWorker()
+        self.worker = Worker(self.coin)
         print(f"Starting cronjob to record {self.coin} prices across exchanges.")
         print(f"Using exchanges {self.worker.EXCHANGES}")
         while True:
