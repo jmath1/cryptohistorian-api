@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class Worker():
     EXCHANGES = [
         "coinbase",
@@ -47,7 +48,13 @@ class Worker():
         buys = p.map(self.api_call_buy, self.EXCHANGES)
 
         for price_point in buys:
-            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="buy", coin=self.coin)
+            p = PricePoint.objects.create(
+                price=price_point[0],
+                exchange=price_point[1],
+                order_type="buy",
+                coin=self.coin
+            )
+
             p.save()
             print(f"Saved {str(p)}")
             logger.info(f"Saved {str(p)}")
@@ -57,7 +64,13 @@ class Worker():
         sells = p.map(self.api_call_sell, self.EXCHANGES)
 
         for price_point in sells:
-            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="sell", coin=self.coin)
+            p = PricePoint.objects.create(
+                price=price_point[0],
+                exchange=price_point[1],
+                order_type="sell",
+                coin=self.coin
+            )
+
             p.save()
             print(f"Saved {str(p)}")
             logger.info(f"Saved {str(p)}")

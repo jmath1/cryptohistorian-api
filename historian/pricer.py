@@ -1,25 +1,28 @@
 import requests
 import json
 
+
 class Pricer():
 
     def __init__(self, coin):
         self.coin = coin
-        
+
     def coinbase(self, order_type):
+        api = "https://api.coinbase.com/v2/prices/"
         if order_type == "buy":
-            endpoint = f"https://api.coinbase.com/v2/prices/{self.coin}-USD/buy"
+            endpoint = f"{api}{self.coin}-USD/buy"
         elif order_type == "sell":
-            endpoint = f"https://api.coinbase.com/v2/prices/{self.coin}-USD/sell"
+            endpoint = f"{api}{self.coin}-USD/sell"
         res = requests.get(endpoint)
         data = res.content.decode('utf-8')
         data = json.loads(data)
         usd_price = data["data"]["amount"]
-        
+
         return usd_price
 
     def bittrex(self, order_type):
-        endpoint = "https://api.bittrex.com/api/v1.1/public/getmarketsummaries"
+        api = "https://api.bittrex.com/api/"
+        endpoint = f"{api}v1.1/public/getmarketsummaries"
         res = requests.get(endpoint)
         data = res.content.decode('utf-8')
         data = json.loads(data)["result"]
