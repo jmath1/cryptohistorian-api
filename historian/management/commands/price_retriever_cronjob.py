@@ -2,70 +2,30 @@ from multiprocessing import Pool
 import time
 from historian.pricer import * 
 from historian.models import PricePoint
+from historian.management.bitcoin.client import BTCWorker
+from historian.management.ethereum.client import ETHWorker
 from django.core.management.base import BaseCommand, CommandError
 import logging
 
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
-
-EXCHANGES = [
-    "coinbase",
-    "bittrex",
-    "binance",
-    "bitfinex",
-]
-def api_call_buy(exchange):
-    order_type = "buy"
-    if exchange == "coinbase":
-        data = coinbase(order_type)
-    elif exchange == "bittrex":
-        data = bittrex(order_type)
-    elif exchange == "binance":
-        data = binance(order_type)
-    elif exchange == "bitfinex":
-        data = bitfinex(order_type)
-    return data, exchange
-
-def api_call_sell(exchange):
-    order_type = "sell"
-    if exchange == "coinbase":
-        data = coinbase(order_type)
-    elif exchange == "bittrex":
-        data = bittrex(order_type)
-    elif exchange == "binance":
-        data = binance(order_type)
-    elif exchange == "bitfinex":
-        data = bitfinex(order_type)
-    return data, exchange
-
-
+# this is the actual cronjob to implement BTC
 class Command(BaseCommand):
-    help = 'Cronjob initializer for recording buy and sell prices across all supported exchanges'
 
-    def get_all_buys(self):
-        p = Pool(len(EXCHANGES))
-        buys = p.map(api_call_buy, EXCHANGES)
-
-        for price_point in buys:
-            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="buy")
-            p.save()
-            print(f"Saved {str(p)}")
-            logger.info(f"Saved {str(p)}")
-            
-    def get_all_sells(self):
-        p = Pool(len(EXCHANGES))
-        buys = p.map(api_call_sell, EXCHANGES)
-
-        for price_point in buys:
-            p = PricePoint.objects.create(price=price_point[0], exchange=price_point[1], order_type="sell")
-            p.save()
-            print(f"Saved {str(p)}")
-            logger.info(f"Saved {str(p)}")
+    help = 'This is an abstract class for implementing a PriceCollector class'
+    coin = None
     
+    def add_arguments(self, parser):
+        parser.add_argument('coin', nargs='+', type=str)
+
+   
     def handle(self, *args, **options):
-        print("Starting cronjob to record BTC prices across exchanges.")
-        print(f"Using exchanges {EXCHANGES}")
+        self.coin = options["coin"][0]
+        if self.coin == "BTC":
+            self.worker = BTCWorker()
+        elif self.coin == "ETH":
+            self.worker = ETHWorker()
+        print(f"Starting cronjob to record {self.coin} prices across exchanges.")
+        print(f"Using exchanges {self.worker.EXCHANGES}")
         while True:
-            self.get_all_buys()
-            self.get_all_sells()
+            self.worker.get_all_buys()
+            self.worker.get_all_sells()
             time.sleep(60)
